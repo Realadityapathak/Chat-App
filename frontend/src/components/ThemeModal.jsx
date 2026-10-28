@@ -64,7 +64,7 @@ function ThemeModal({ isOpen, onClose }) {
                 {/* THEME NAME & SELECTION INDICATOR */}
                 <div className="flex items-center justify-between w-full">
                   <span className="text-xs font-semibold capitalize text-base-content truncate">
-                    {t === "dark" ? "Chatify (Default)" : t}
+                    {t === "dark" ? "Samvad (Default)" : t}
                   </span>
                   {isSelected && <Check className="size-3.5 text-cyan-400 shrink-0" />}
                 </div>

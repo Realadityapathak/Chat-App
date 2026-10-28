@@ -155,7 +155,7 @@ function ProfileHeader() {
               Confirm Logout
             </h4>
             <p className="text-sm text-base-content/80">
-              Are you sure you want to log out of Chatify?
+              Are you sure you want to log out of Samvad?
             </p>
             <div className="flex flex-col sm:flex-row gap-2 pt-2">
               <button

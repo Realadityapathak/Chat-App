@@ -1,6 +1,6 @@
 import { useAuthStore } from "../store/useAuthStore";
 
-// Animated gradient border container: Default Chatify Slate/Cyan when logged out, dynamic theme when logged in
+// Animated gradient border container: Default Samvad Slate/Cyan when logged out, dynamic theme when logged in
 function BorderAnimatedContainer({ children }) {
   const { authUser } = useAuthStore();
 
