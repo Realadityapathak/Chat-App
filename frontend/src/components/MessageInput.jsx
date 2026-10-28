@@ -1,15 +1,21 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import useKeyboardSound from "../hooks/useKeyboardSound";
 import { useChatStore } from "../store/useChatStore";
 import toast from "react-hot-toast";
-import { ImageIcon, SendIcon, XIcon } from "lucide-react";
+import { ImageIcon, SendIcon, XIcon, ActivityIcon } from "lucide-react";
+import { m } from "motion/react";
+import { tactilePress } from "../lib/motion";
+
+const MotionButton = m.button;
 
 function MessageInput() {
   const { playRandomKeyStrokeSound } = useKeyboardSound();
   const [text, setText] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
+  const [keystrokeCadence, setKeystrokeCadence] = useState(false);
 
   const fileInputRef = useRef(null);
+  const cadenceTimeoutRef = useRef(null);
 
   const { sendMessage, isSoundEnabled } = useChatStore();
 
@@ -23,21 +29,39 @@ function MessageInput() {
       image: imagePreview,
     });
     setText("");
-    setImagePreview("");
+    setImagePreview(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
+
+  const handleInputChange = (e) => {
+    setText(e.target.value);
+    if (isSoundEnabled) playRandomKeyStrokeSound();
+
+    // Trigger signature audio-cadence visualizer tick
+    setKeystrokeCadence(true);
+    if (cadenceTimeoutRef.current) clearTimeout(cadenceTimeoutRef.current);
+    cadenceTimeoutRef.current = setTimeout(() => {
+      setKeystrokeCadence(false);
+    }, 180);
+  };
+
+  useEffect(() => {
+    return () => {
+      if (cadenceTimeoutRef.current) clearTimeout(cadenceTimeoutRef.current);
+    };
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please select an image file");
+      toast.error("Invalid file format. Select an image file.");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image size must be less than 5MB");
+      toast.error("Payload too large. Maximum image size is 5MB.");
       return;
     }
 
@@ -52,38 +76,59 @@ function MessageInput() {
   };
 
   return (
-    <div className="p-2 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-slate-700/50 shrink-0 bg-slate-900/40 backdrop-blur-sm">
+    <div className="p-2.5 sm:p-4 pb-[max(0.75rem,env(safe-area-inset-bottom))] border-t border-console-border shrink-0 bg-console-surface">
+      {/* SIGNATURE ELEMENT: TACTILE SOUND DECK TELEMETRY STRIP */}
+      <div className="max-w-2xl mx-auto mb-2 px-1 flex items-center justify-between text-[10px] font-mono text-console-text-muted select-none">
+        <div className="flex items-center gap-2">
+          <ActivityIcon className={`size-3 ${keystrokeCadence ? "text-console-accent" : "text-console-text-muted"}`} />
+          <span>SOUND DECK: {isSoundEnabled ? "ACOUSTIC ACTIVE" : "MUTED"}</span>
+        </div>
+
+        {/* CADENCE TICK METER */}
+        <div className="flex items-center gap-0.5 h-2">
+          {[1, 2, 3, 4, 5, 6].map((bar) => (
+            <span
+              key={bar}
+              className={`w-0.5 rounded-full transition-all duration-75 ${
+                keystrokeCadence
+                  ? "bg-console-accent h-2.5"
+                  : "bg-console-border h-1"
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
       {imagePreview && (
-        <div className="max-w-3xl mx-auto mb-3 flex items-center">
+        <div className="max-w-2xl mx-auto mb-2 flex items-center">
           <div className="relative">
             <img
               src={imagePreview}
-              alt="Preview"
-              className="w-20 h-20 object-cover rounded-lg border border-slate-700"
+              alt="Attachment preview"
+              className="size-16 sm:size-20 object-cover rounded-md border border-console-border"
             />
             <button
               onClick={removeImage}
-              aria-label="Remove image"
-              className="absolute -top-2 -right-2 w-7 h-7 rounded-full bg-slate-800 flex items-center justify-center text-slate-200 hover:bg-slate-700 border border-slate-600 cursor-pointer"
+              aria-label="Remove image payload"
+              className="absolute -top-2 -right-2 size-6 rounded-full bg-console-surface border border-console-border text-console-text-muted hover:text-rose-500 flex items-center justify-center cursor-pointer shadow-sm"
               type="button"
             >
-              <XIcon className="w-4 h-4" />
+              <XIcon className="size-3.5" />
             </button>
           </div>
         </div>
       )}
 
-      <form onSubmit={handleSendMessage} className="max-w-3xl mx-auto flex items-center gap-2 sm:gap-3">
-        <input
-          type="text"
-          value={text}
-          onChange={(e) => {
-            setText(e.target.value);
-            isSoundEnabled && playRandomKeyStrokeSound();
-          }}
-          className="flex-1 bg-slate-800/50 border border-slate-700/50 rounded-lg py-2.5 px-3 sm:px-4 text-[16px] sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-cyan-500 min-h-[44px]"
-          placeholder="Type your message..."
-        />
+      <form onSubmit={handleSendMessage} className="max-w-2xl mx-auto flex items-center gap-2">
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={text}
+            onChange={handleInputChange}
+            className="w-full bg-console-surface-subtle border border-console-border rounded-md py-2.5 pl-3.5 pr-3 text-[16px] sm:text-sm text-console-text placeholder:text-console-text-muted focus:outline-none focus:ring-2 focus:ring-console-accent focus:border-transparent min-h-[44px] transition-all font-sans"
+            placeholder="Write transmission..."
+          />
+        </div>
 
         <input
           type="file"
@@ -93,24 +138,31 @@ function MessageInput() {
           className="hidden"
         />
 
+        {/* ATTACH IMAGE BUTTON */}
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
-          aria-label="Attach image"
-          className={`min-h-[44px] min-w-[44px] flex items-center justify-center bg-slate-800/50 text-slate-400 hover:text-slate-200 rounded-lg transition-colors shrink-0 cursor-pointer ${
-            imagePreview ? "text-cyan-400" : ""
+          aria-label="Attach image transmission"
+          className={`min-h-[44px] min-w-[44px] flex items-center justify-center rounded-md border transition-all shrink-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-console-accent ${
+            imagePreview
+              ? "bg-console-accent/15 border-console-accent text-console-accent"
+              : "bg-console-surface-subtle border-console-border text-console-text-muted hover:text-console-text hover:bg-console-surface"
           }`}
         >
-          <ImageIcon className="w-5 h-5" />
+          <ImageIcon className="size-4 sm:size-5" />
         </button>
-        <button
+
+        {/* SEND BUTTON */}
+        <MotionButton
+          whileTap={tactilePress.tap}
           type="submit"
           disabled={!text.trim() && !imagePreview}
-          aria-label="Send message"
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center bg-gradient-to-r from-cyan-500 to-cyan-600 text-white rounded-lg px-3 sm:px-4 font-medium hover:from-cyan-600 hover:to-cyan-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shrink-0 cursor-pointer"
+          aria-label="Send transmission message"
+          className="min-h-[44px] min-w-[44px] px-4 flex items-center justify-center gap-1.5 bg-console-accent text-white font-mono font-semibold text-xs rounded-md hover:bg-console-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed shrink-0 cursor-pointer shadow-tactile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-console-accent"
         >
-          <SendIcon className="w-5 h-5" />
-        </button>
+          <span className="hidden sm:inline">DISPATCH</span>
+          <SendIcon className="size-4" />
+        </MotionButton>
       </form>
     </div>
   );

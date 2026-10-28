@@ -1,13 +1,15 @@
 import { useState, useRef } from "react";
-import { CameraIcon, LogOutIcon, VolumeOffIcon, Volume2Icon } from "lucide-react";
+import { CameraIcon, LogOutIcon, VolumeOffIcon, Volume2Icon, SunIcon, MoonIcon } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
+import { useThemeStore } from "../store/useThemeStore";
 
 const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
 function ProfileHeader() {
   const { logout, authUser, updateProfile } = useAuthStore();
   const { isSoundEnabled, toggleSound } = useChatStore();
+  const { theme, toggleTheme } = useThemeStore();
   const [selectedImg, setSelectedImg] = useState(null);
 
   const fileInputRef = useRef(null);
@@ -27,30 +29,32 @@ function ProfileHeader() {
   };
 
   return (
-    <div className="p-4 sm:p-6 border-b border-slate-700/50 shrink-0">
+    <div className="p-4 border-b border-console-border shrink-0 bg-console-surface">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3 min-w-0">
-          {/* AVATAR */}
-          <div className="avatar online shrink-0 relative">
+          {/* SQUIRCLE AVATAR */}
+          <div className="relative shrink-0">
             <button
-              className="size-12 sm:size-14 rounded-full overflow-hidden relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              className="size-11 sm:size-12 rounded-[8px] overflow-hidden relative group cursor-pointer border border-console-border focus:outline-none focus:ring-2 focus:ring-console-accent"
               onClick={() => fileInputRef.current.click()}
-              aria-label="Change profile picture"
+              aria-label="Upload operator picture"
+              type="button"
             >
               <img
                 src={selectedImg || authUser.profilePic || "/avatar.png"}
-                alt="User image"
+                alt={authUser.fullName}
                 className="size-full object-cover"
               />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <span className="text-white text-xs">Change</span>
+              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 group-focus:opacity-100 flex items-center justify-center transition-opacity">
+                <CameraIcon className="size-4 text-white" />
               </div>
             </button>
 
-            {/* Mobile-visible camera edit indicator badge */}
-            <div className="absolute -bottom-1 -right-1 bg-slate-900 border border-slate-700 rounded-full p-1 text-slate-300 pointer-events-none shadow-sm">
-              <CameraIcon className="size-3" />
-            </div>
+            {/* LIVE STATUS PIP */}
+            <span
+              className="absolute -top-1 -right-1 size-2.5 rounded-full bg-emerald-500 ring-2 ring-console-surface"
+              title="Channel status: Active"
+            />
 
             <input
               type="file"
@@ -61,43 +65,58 @@ function ProfileHeader() {
             />
           </div>
 
-          {/* USERNAME & ONLINE TEXT */}
+          {/* OPERATOR DETAILS */}
           <div className="min-w-0">
-            <h3 className="text-slate-200 font-medium text-sm sm:text-base max-w-[150px] sm:max-w-[180px] truncate">
-              {authUser.fullName}
-            </h3>
-
-            <p className="text-slate-400 text-xs">Online</p>
+            <div className="flex items-center gap-1.5">
+              <h2 className="text-console-text font-bold text-sm truncate leading-tight">
+                {authUser.fullName}
+              </h2>
+            </div>
+            <p className="text-console-text-muted text-[11px] font-mono mt-0.5 flex items-center gap-1">
+              <span className="inline-block size-1 rounded-full bg-emerald-500" />
+              ONLINE // TRANSMITTING
+            </p>
           </div>
         </div>
 
-        {/* BUTTONS */}
-        <div className="flex items-center gap-1 sm:gap-2">
-          {/* LOGOUT BTN */}
+        {/* CONTROLS */}
+        <div className="flex items-center gap-1">
+          {/* THEME TOGGLE */}
           <button
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer rounded-lg"
-            onClick={logout}
-            aria-label="Logout"
+            className="size-9 rounded-md flex items-center justify-center text-console-text-muted hover:text-console-text hover:bg-console-surface-subtle border border-transparent hover:border-console-border transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-console-accent"
+            onClick={toggleTheme}
+            aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
+            type="button"
           >
-            <LogOutIcon className="size-5" />
+            {theme === "dark" ? <SunIcon className="size-4" /> : <MoonIcon className="size-4" />}
           </button>
 
-          {/* SOUND TOGGLE BTN */}
+          {/* AUDIO TOGGLE */}
           <button
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer rounded-lg"
+            className="size-9 rounded-md flex items-center justify-center text-console-text-muted hover:text-console-text hover:bg-console-surface-subtle border border-transparent hover:border-console-border transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-console-accent"
             onClick={() => {
-              // play click sound before toggling
-              mouseClickSound.currentTime = 0; // reset to start
-              mouseClickSound.play().catch((error) => console.log("Audio play failed:", error));
+              mouseClickSound.currentTime = 0;
+              mouseClickSound.play().catch((error) => console.log("Audio playback failed:", error));
               toggleSound();
             }}
-            aria-label={isSoundEnabled ? "Disable sounds" : "Enable sounds"}
+            aria-label={isSoundEnabled ? "Disable acoustic feedback" : "Enable acoustic feedback"}
+            type="button"
           >
             {isSoundEnabled ? (
-              <Volume2Icon className="size-5" />
+              <Volume2Icon className="size-4 text-console-accent" />
             ) : (
-              <VolumeOffIcon className="size-5" />
+              <VolumeOffIcon className="size-4" />
             )}
+          </button>
+
+          {/* LOGOUT */}
+          <button
+            className="size-9 rounded-md flex items-center justify-center text-console-text-muted hover:text-rose-500 hover:bg-console-surface-subtle border border-transparent hover:border-console-border transition-all cursor-pointer focus-visible:ring-2 focus-visible:ring-rose-500"
+            onClick={logout}
+            aria-label="Disconnect session"
+            type="button"
+          >
+            <LogOutIcon className="size-4" />
           </button>
         </div>
       </div>

@@ -2,40 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-@property --border-angle {
-  inherits: false;
-  initial-value: 0deg;
-  syntax: "<angle>";
+:root {
+  --color-canvas: #eef0f4;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f5f7fa;
+  --color-border: #d0d6de;
+  --color-text: #12151b;
+  --color-text-muted: #5c6675;
+  --color-accent: #ea580c;
+  --color-accent-hover: #c2410c;
+  --color-accent-subtle: rgba(234, 88, 12, 0.12);
+  --color-success: #16a34a;
+}
+
+[data-theme="dark"] {
+  --color-canvas: #0f1115;
+  --color-surface: #171a20;
+  --color-surface-subtle: #1f242d;
+  --color-border: #282e38;
+  --color-text: #edf1f5;
+  --color-text-muted: #7b8696;
+  --color-accent: #ff6b2b;
+  --color-accent-hover: #ff854d;
+  --color-accent-subtle: rgba(255, 107, 43, 0.15);
+  --color-success: #22c55e;
 }
 
 html,
 body,
 #root {
   min-height: 100dvh;
+  background-color: var(--color-canvas);
+  color: var(--color-text);
+  font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  transition: background-color 150ms ease, color 150ms ease;
 }
 
-.input {
-  @apply w-full bg-slate-800/50 border border-slate-700 rounded-lg py-2.5 pl-10 pr-4 text-[16px] sm:text-sm text-slate-200 placeholder-slate-400 focus:ring-2 focus:ring-cyan-500 focus:border-transparent;
+/* Custom Scrollbar for Precision Console */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Semantic UI Component Classes */
+.input,
+.console-input {
+  @apply w-full bg-console-surface-subtle border border-console-border rounded-md py-2.5 pl-10 pr-4 text-[16px] sm:text-sm text-console-text placeholder:text-console-text-muted placeholder:opacity-70 focus:outline-none focus:ring-2 focus:ring-console-accent focus:border-transparent transition-all min-h-[44px];
 }
 
 .auth-input-icon {
-  @apply absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 size-5;
+  @apply absolute left-3 top-1/2 -translate-y-1/2 text-console-text-muted size-4 sm:size-5 pointer-events-none;
 }
 
 .auth-input-label {
-  @apply block text-sm font-medium text-slate-300 mb-2;
+  @apply block text-xs font-semibold text-console-text-muted uppercase tracking-wider mb-1.5 font-mono;
 }
 
 .auth-badge {
-  @apply inline-flex items-center px-3 py-1 text-xs font-medium rounded-full bg-cyan-500/20 text-cyan-300;
+  @apply inline-flex items-center px-2.5 py-1 text-[11px] font-mono font-medium rounded border border-console-border bg-console-surface-subtle text-console-text-muted;
 }
 
-.auth-btn {
-  @apply w-full bg-cyan-500 text-white rounded-lg py-3 font-medium min-h-[44px]
-  hover:bg-cyan-600 focus:ring-2 focus:ring-cyan-500 transition-colors;
+.auth-btn,
+.console-btn-primary {
+  @apply w-full bg-console-accent text-white font-semibold rounded-md py-3 px-4 min-h-[44px]
+  hover:bg-console-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-console-accent focus-visible:ring-offset-2 transition-all shadow-tactile active:scale-[0.98] cursor-pointer flex items-center justify-center;
 }
 
-.auth-link {
-  @apply px-4 py-2 inline-block bg-cyan-500/10 rounded-lg text-cyan-400
-  hover:text-cyan-500 text-sm transition-colors min-h-[44px] inline-flex items-center;
+.auth-link,
+.console-btn-secondary {
+  @apply px-4 py-2 inline-flex items-center justify-center bg-console-surface border border-console-border rounded-md text-console-text hover:bg-console-surface-subtle text-sm transition-all min-h-[44px] cursor-pointer;
+}
+
+/* Focus Utility */
+.console-focus {
+  @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-console-accent focus-visible:ring-offset-1 focus-visible:ring-offset-console-surface;
 }

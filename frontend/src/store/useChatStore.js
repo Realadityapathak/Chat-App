@@ -3,6 +3,9 @@ import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { useAuthStore } from "./useAuthStore";
 
+// Pre-instantiated audio instance to eliminate dynamic allocation overhead
+const notificationSound = new Audio("/sounds/notification.mp3");
+
 export const useChatStore = create((set, get) => ({
   allContacts: [],
   chats: [],
@@ -14,8 +17,9 @@ export const useChatStore = create((set, get) => ({
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
 
   toggleSound: () => {
-    localStorage.setItem("isSoundEnabled", !get().isSoundEnabled);
-    set({ isSoundEnabled: !get().isSoundEnabled });
+    const nextSoundState = !get().isSoundEnabled;
+    localStorage.setItem("isSoundEnabled", nextSoundState);
+    set({ isSoundEnabled: nextSoundState });
   },
 
   setActiveTab: (tab) => set({ activeTab: tab }),
@@ -27,18 +31,19 @@ export const useChatStore = create((set, get) => ({
       const res = await axiosInstance.get("/messages/contacts");
       set({ allContacts: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to load contacts");
     } finally {
       set({ isUsersLoading: false });
     }
   },
+
   getMyChatPartners: async () => {
     set({ isUsersLoading: true });
     try {
       const res = await axiosInstance.get("/messages/chats");
       set({ chats: res.data });
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to load chats");
     } finally {
       set({ isUsersLoading: false });
     }
@@ -57,8 +62,9 @@ export const useChatStore = create((set, get) => ({
   },
 
   sendMessage: async (messageData) => {
-    const { selectedUser, messages } = get();
+    const { selectedUser } = get();
     const { authUser } = useAuthStore.getState();
+    if (!selectedUser) return;
 
     const tempId = `temp-${Date.now()}`;
 
@@ -69,45 +75,58 @@ export const useChatStore = create((set, get) => ({
       text: messageData.text,
       image: messageData.image,
       createdAt: new Date().toISOString(),
-      isOptimistic: true, // flag to identify optimistic messages (optional)
+      isOptimistic: true,
     };
-    // immidetaly update the ui by adding the message
-    set({ messages: [...messages, optimisticMessage] });
+
+    // Immediately update UI with optimistic message
+    set((state) => ({ messages: [...state.messages, optimisticMessage] }));
 
     try {
       const res = await axiosInstance.post(`/messages/send/${selectedUser._id}`, messageData);
-      set({ messages: messages.concat(res.data) });
+      // Replace optimistic message by ID without clobbering new incoming messages
+      set((state) => ({
+        messages: state.messages.map((m) => (m._id === tempId ? res.data : m)),
+      }));
+      // Keep chat list synchronized with recent activity
+      get().getMyChatPartners();
     } catch (error) {
-      // remove optimistic message on failure
-      set({ messages: messages });
+      // Remove optimistic message on failure
+      set((state) => ({
+        messages: state.messages.filter((m) => m._id !== tempId),
+      }));
       toast.error(error.response?.data?.message || "Something went wrong");
     }
   },
 
   subscribeToMessages: () => {
-    const { selectedUser, isSoundEnabled } = get();
-    if (!selectedUser) return;
-
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
+
+    // Remove existing listener to prevent duplicate handlers
+    socket.off("newMessage");
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
+      const { selectedUser: currentSelected, isSoundEnabled: soundActive } = get();
 
-      const currentMessages = get().messages;
-      set({ messages: [...currentMessages, newMessage] });
+      // Append message if it belongs to currently selected conversation
+      if (currentSelected && newMessage.senderId === currentSelected._id) {
+        set((state) => ({ messages: [...state.messages, newMessage] }));
+      }
 
-      if (isSoundEnabled) {
-        const notificationSound = new Audio("/sounds/notification.mp3");
-
-        notificationSound.currentTime = 0; // reset to start
+      if (soundActive) {
+        notificationSound.currentTime = 0;
         notificationSound.play().catch((e) => console.log("Audio play failed:", e));
       }
+
+      // Re-fetch chat partners so recent conversations float to the top
+      get().getMyChatPartners();
     });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
-    socket.off("newMessage");
+    if (socket) {
+      socket.off("newMessage");
+    }
   },
 }));

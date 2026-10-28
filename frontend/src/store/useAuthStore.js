@@ -34,11 +34,10 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/signup", data);
       set({ authUser: res.data });
-
       toast.success("Account created successfully!");
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Signup failed");
     } finally {
       set({ isSigningUp: false });
     }
@@ -49,12 +48,10 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/login", data);
       set({ authUser: res.data });
-
       toast.success("Logged in successfully");
-
       get().connectSocket();
     } catch (error) {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Login failed");
     } finally {
       set({ isLoggingIn: false });
     }
@@ -79,41 +76,38 @@ export const useAuthStore = create((set, get) => ({
       toast.success("Profile updated successfully");
     } catch (error) {
       console.log("Error in update profile:", error);
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Failed to update profile");
     }
   },
 
   connectSocket: () => {
-    const { authUser } = get();
-    if (!authUser || get().socket?.connected) return;
+    const { authUser, socket } = get();
+    if (!authUser) return;
+    if (socket) return; // Prevent duplicate socket connections
 
-    const socket = io(BASE_URL, {
-      withCredentials: true, // this ensures cookies are sent with the connection
+    const newSocket = io(BASE_URL, {
+      withCredentials: true,
     });
 
-    socket.connect();
+    newSocket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err.message);
+    });
 
-    set({ socket });
+    newSocket.on("getOnlineUsers", (userIds) => {
+      set({ onlineUsers: userIds });
+    });
 
-   
-    socket.off("getOnlineUsers");
-    
-socket.on("getOnlineUsers", (userIds) => {
-  console.log("Online Users:", userIds);
-  set({ onlineUsers: userIds });
-});
+    set({ socket: newSocket });
   },
 
   disconnectSocket: () => {
-  const socket = get().socket;
-
-  if (socket) {
-    socket.disconnect();
-
-    set({
-      socket: null,
-      onlineUsers: [],
-    });
-  }
-},
+    const { socket } = get();
+    if (socket) {
+      socket.disconnect();
+      set({
+        socket: null,
+        onlineUsers: [],
+      });
+    }
+  },
 }));

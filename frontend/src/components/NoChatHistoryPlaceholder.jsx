@@ -1,42 +1,55 @@
-import { MessageCircleIcon } from "lucide-react";
+import { SendIcon } from "lucide-react";
+import { useChatStore } from "../store/useChatStore";
 
-const NoChatHistoryPlaceholder = ({ name }) => {
+function NoChatHistoryPlaceholder({ name }) {
+  const { sendMessage } = useChatStore();
+
+  const handleQuickPrompt = (text) => {
+    sendMessage({ text });
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center h-full text-center p-3 sm:p-6 my-auto">
-      <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-cyan-500/20 to-cyan-400/10 rounded-full flex items-center justify-center mb-2 sm:mb-5 shrink-0">
-        <MessageCircleIcon className="size-6 sm:size-8 text-cyan-400" />
+    <div className="flex flex-col items-center justify-center h-full text-center p-4 my-auto select-none">
+      <div className="size-12 sm:size-14 rounded-lg bg-console-surface border border-console-border flex items-center justify-center mb-3 text-console-accent shadow-tactile">
+        <SendIcon className="size-6" />
       </div>
-      <h3 className="text-base sm:text-lg font-medium text-slate-200 mb-1 sm:mb-3">
-        Start your conversation with {name}
+
+      <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded bg-console-surface border border-console-border text-console-text-muted text-[10px] font-mono mb-2">
+        LOG CREATED // ZERO DISPATCHES
+      </div>
+
+      <h3 className="text-sm sm:text-base font-bold text-console-text mb-1">
+        Channel Open with {name}
       </h3>
-      <div className="flex flex-col space-y-2 max-w-md mb-3 sm:mb-5">
-        <p className="text-slate-400 text-xs sm:text-sm">
-          This is the beginning of your conversation. Send a message to start chatting!
-        </p>
-        <div className="h-px w-24 sm:w-32 bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent mx-auto"></div>
-      </div>
-      <div className="flex flex-wrap gap-2 justify-center">
+      <p className="text-console-text-muted text-xs max-w-xs mb-4 leading-relaxed">
+        Send a message below to establish communications.
+      </p>
+
+      <div className="flex flex-wrap gap-1.5 justify-center max-w-sm">
         <button
           type="button"
-          className="min-h-[36px] sm:min-h-[44px] flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors cursor-pointer"
+          onClick={() => handleQuickPrompt("Checking in on latest status.")}
+          className="min-h-[38px] px-3 py-1.5 text-xs font-mono rounded-md border border-console-border bg-console-surface text-console-text hover:bg-console-surface-subtle hover:border-console-accent/40 transition-colors cursor-pointer shadow-tactile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-console-accent"
         >
-          👋 Say Hello
+          Status Check
         </button>
         <button
           type="button"
-          className="min-h-[36px] sm:min-h-[44px] flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors cursor-pointer"
+          onClick={() => handleQuickPrompt("Ready to sync on build progress.")}
+          className="min-h-[38px] px-3 py-1.5 text-xs font-mono rounded-md border border-console-border bg-console-surface text-console-text hover:bg-console-surface-subtle hover:border-console-accent/40 transition-colors cursor-pointer shadow-tactile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-console-accent"
         >
-          🤝 How are you?
+          Sync Progress
         </button>
         <button
           type="button"
-          className="min-h-[36px] sm:min-h-[44px] flex items-center px-3 sm:px-4 py-1.5 sm:py-2 text-xs font-medium text-cyan-400 bg-cyan-500/10 rounded-full hover:bg-cyan-500/20 transition-colors cursor-pointer"
+          onClick={() => handleQuickPrompt("Transmission received and verified.")}
+          className="min-h-[38px] px-3 py-1.5 text-xs font-mono rounded-md border border-console-border bg-console-surface text-console-text hover:bg-console-surface-subtle hover:border-console-accent/40 transition-colors cursor-pointer shadow-tactile focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-console-accent"
         >
-          📅 Meet up soon?
+          Acknowledge
         </button>
       </div>
     </div>
   );
-};
+}
 
 export default NoChatHistoryPlaceholder;
