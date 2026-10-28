@@ -20,6 +20,6 @@ yarn-error.log*
 .antigravityignore
 GEMINI.md
 
-# Documentation (Local Only)
-docs/*.md
+# Documentation & Audit Artifacts (Local Only)
+docs/
 tests/

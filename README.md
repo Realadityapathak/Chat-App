@@ -17,15 +17,10 @@
 
 ## Preview
 
-| Desktop Chat Interface (1280px) | Theme Studio (32 Palettes) |
+| Chat Interface | Authentication Portal |
 | :---: | :---: |
-| ![Desktop Chat](docs/screenshots/02_chat_desktop.png) | ![Theme Studio](docs/screenshots/03_theme_modal_desktop.png) |
-| *Real-time chat viewport with reactions, replies, and status* | *Theme picker with active swatch previews and persistence* |
-
-| Mobile Conversation List (375px) | Mobile Chat View (375px) | Authentication Portal |
-| :---: | :---: | :---: |
-| ![Mobile Chat List](docs/screenshots/05_chat_list_mobile.png) | ![Mobile Chat View](docs/screenshots/06_chat_window_mobile.png) | ![Authentication](docs/screenshots/01_login_desktop.png) |
-| *Adaptive single-pane sidebar with unread badges* | *Decoupled scrolling with Back navigation* | *Responsive auth card with bot protection* |
+| ![Chat Interface](frontend/public/screenshot-for-readme.png) | ![Authentication](frontend/public/login.png) |
+| *Real-time chat viewport with active conversation and presence* | *Responsive authentication interface with secure credentials* |
 
 ---
 
@@ -241,8 +236,7 @@ Chat-App/
 │   ├── tailwind.config.js                # Tailwind CSS & 32 DaisyUI themes
 │   └── package.json
 │
-├── docs/                                 # Architectural documentation & screenshots
-├── package.json                          # Monorepo root scripts & dev dependencies
+├── package.json                          # Monorepo scripts for dev, build, lint & test
 └── .gitignore                            # Exclusion rules for secrets & node_modules
 ```
 
