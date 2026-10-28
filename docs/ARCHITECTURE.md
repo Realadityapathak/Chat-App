@@ -78,7 +78,9 @@ Chatify is a full-stack, real-time messaging application. It consists of an Expr
 - **Routing**: React Router v7 (`react-router`)
 - **State Management**: Zustand v5
 - **HTTP Client**: Axios v1.11.0
-- **Styling**: Tailwind CSS v3 with DaisyUI v4
+- **Styling**: Tailwind CSS v3 with Precision Telegraph token architecture
+- **Motion**: `motion` v14 (with `LazyMotion` & `reducedMotion="user"`)
+- **Typography**: Plus Jakarta Sans (Prose) & JetBrains Mono (Telemetry)
 - **Icons**: Lucide React
 - **Notifications**: React Hot Toast
 
@@ -91,6 +93,10 @@ Chatify is a full-stack, real-time messaging application. It consists of an Expr
   - State: `allContacts`, `chats`, `messages`, `activeTab`, `selectedUser`, `isUsersLoading`, `isMessagesLoading`, `isSoundEnabled`
   - Actions: `getAllContacts`, `getMyChatPartners`, `getMessagesByUserId`, `sendMessage`, `subscribeToMessages`, `unsubscribeFromMessages`, `setSelectedUser`, `setActiveTab`, `toggleSound`
   - Optimistic updates: appends temporary message object before sending POST request, rolls back on error.
+- `useThemeStore` (`frontend/src/store/useThemeStore.js`):
+  - State: `theme` ("dark" | "light")
+  - Actions: `initTheme`, `toggleTheme`
+  - Manages dual themes ("Deep Titanium" and "Anodized Slate") persisted to `localStorage`.
 
 ### Routing & Views
 - `frontend/src/App.jsx` handles global authentication check on mount (`checkAuth`).
