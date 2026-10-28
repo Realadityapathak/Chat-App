@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { LogOutIcon, VolumeOffIcon, Volume2Icon } from "lucide-react";
+import { CameraIcon, LogOutIcon, VolumeOffIcon, Volume2Icon } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
@@ -27,14 +27,15 @@ function ProfileHeader() {
   };
 
   return (
-    <div className="p-6 border-b border-slate-700/50">
+    <div className="p-4 sm:p-6 border-b border-slate-700/50 shrink-0">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0">
           {/* AVATAR */}
-          <div className="avatar online">
+          <div className="avatar online shrink-0 relative">
             <button
-              className="size-14 rounded-full overflow-hidden relative group"
+              className="size-12 sm:size-14 rounded-full overflow-hidden relative group cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-500"
               onClick={() => fileInputRef.current.click()}
+              aria-label="Change profile picture"
             >
               <img
                 src={selectedImg || authUser.profilePic || "/avatar.png"}
@@ -46,6 +47,11 @@ function ProfileHeader() {
               </div>
             </button>
 
+            {/* Mobile-visible camera edit indicator badge */}
+            <div className="absolute -bottom-1 -right-1 bg-slate-900 border border-slate-700 rounded-full p-1 text-slate-300 pointer-events-none shadow-sm">
+              <CameraIcon className="size-3" />
+            </div>
+
             <input
               type="file"
               accept="image/*"
@@ -56,8 +62,8 @@ function ProfileHeader() {
           </div>
 
           {/* USERNAME & ONLINE TEXT */}
-          <div>
-            <h3 className="text-slate-200 font-medium text-base max-w-[180px] truncate">
+          <div className="min-w-0">
+            <h3 className="text-slate-200 font-medium text-sm sm:text-base max-w-[150px] sm:max-w-[180px] truncate">
               {authUser.fullName}
             </h3>
 
@@ -66,24 +72,26 @@ function ProfileHeader() {
         </div>
 
         {/* BUTTONS */}
-        <div className="flex gap-4 items-center">
+        <div className="flex items-center gap-1 sm:gap-2">
           {/* LOGOUT BTN */}
           <button
-            className="text-slate-400 hover:text-slate-200 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer rounded-lg"
             onClick={logout}
+            aria-label="Logout"
           >
             <LogOutIcon className="size-5" />
           </button>
 
           {/* SOUND TOGGLE BTN */}
           <button
-            className="text-slate-400 hover:text-slate-200 transition-colors"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer rounded-lg"
             onClick={() => {
               // play click sound before toggling
               mouseClickSound.currentTime = 0; // reset to start
               mouseClickSound.play().catch((error) => console.log("Audio play failed:", error));
               toggleSound();
             }}
+            aria-label={isSoundEnabled ? "Disable sounds" : "Enable sounds"}
           >
             {isSoundEnabled ? (
               <Volume2Icon className="size-5" />
