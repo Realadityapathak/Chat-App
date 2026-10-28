@@ -4,8 +4,13 @@ import UsersLoadingSkeleton from "./UsersLoadingSkeleton";
 import { useAuthStore } from "../store/useAuthStore";
 
 function ContactList() {
-  const { getAllContacts, allContacts, setSelectedUser, selectedUser, isUsersLoading } = useChatStore();
+  const { getAllContacts, allContacts, chats, setSelectedUser, isUsersLoading, typingUsers } = useChatStore();
   const { onlineUsers } = useAuthStore();
+
+  const unreadCounts = chats.reduce((acc, c) => {
+    if (c.unreadCount) acc[c._id] = c.unreadCount;
+    return acc;
+  }, {});
 
   useEffect(() => {
     getAllContacts();
@@ -14,57 +19,35 @@ function ContactList() {
   if (isUsersLoading) return <UsersLoadingSkeleton />;
 
   return (
-    <div className="space-y-1">
-      {allContacts.map((contact) => {
-        const isOnline = onlineUsers.includes(contact._id);
-        const isSelected = selectedUser?._id === contact._id;
-
-        return (
-          <button
-            key={contact._id}
-            onClick={() => setSelectedUser(contact)}
-            className={`w-full p-2.5 rounded-md text-left transition-all cursor-pointer flex items-center justify-between min-h-[52px] border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-console-accent ${
-              isSelected
-                ? "bg-console-surface border-console-accent/40 shadow-tactile text-console-text"
-                : "bg-transparent border-transparent hover:bg-console-surface hover:border-console-border text-console-text-muted hover:text-console-text"
-            }`}
-            type="button"
-          >
-            <div className="flex items-center gap-3 min-w-0">
-              {/* SQUIRCLE AVATAR */}
-              <div className="relative shrink-0">
-                <div className="size-10 rounded-[6px] overflow-hidden border border-console-border bg-console-surface-subtle">
-                  <img
-                    src={contact.profilePic || "/avatar.png"}
-                    alt={contact.fullName}
-                    className="size-full object-cover"
-                  />
-                </div>
-                <span
-                  className={`absolute -bottom-0.5 -right-0.5 size-2 rounded-full ring-2 ring-console-surface ${
-                    isOnline ? "bg-emerald-500" : "bg-console-border"
-                  }`}
-                />
-              </div>
-
-              {/* NAME & STATUS */}
-              <div className="min-w-0">
-                <h3 className="font-semibold text-sm truncate leading-tight text-console-text">
-                  {contact.fullName}
-                </h3>
-                <p className="text-[11px] font-mono mt-0.5 text-console-text-muted">
-                  {isOnline ? "AVAILABLE" : "OFFLINE"}
-                </p>
+    <>
+      {allContacts.map((contact) => (
+        <div
+          key={contact._id}
+          className="bg-base-300/40 p-3 sm:p-4 rounded-xl cursor-pointer hover:bg-base-300/80 transition-all min-h-[44px] flex items-center justify-between border border-transparent hover:border-base-content/10"
+          onClick={() => setSelectedUser(contact)}
+        >
+          <div className="flex items-center gap-3 min-w-0">
+            <div className={`avatar ${onlineUsers.includes(contact._id) ? "online" : "offline"} shrink-0`}>
+              <div className="size-10 sm:size-12 rounded-full">
+                <img src={contact.profilePic || "/avatar.png"} alt={contact.fullName} />
               </div>
             </div>
+            <div className="min-w-0">
+              <h4 className="text-base-content font-medium truncate text-sm sm:text-base">{contact.fullName}</h4>
+              {typingUsers[contact._id] && (
+                <p className="text-xs text-primary animate-pulse font-medium">typing...</p>
+              )}
+            </div>
+          </div>
 
-            <span className="text-[11px] font-mono text-console-text-muted group-hover:text-console-accent">
-              CONNECT
+          {unreadCounts[contact._id] > 0 && (
+            <span className="badge badge-primary font-bold text-xs px-2 py-0.5 rounded-full shadow-sm shrink-0">
+              {unreadCounts[contact._id] > 99 ? "99+" : unreadCounts[contact._id]}
             </span>
-          </button>
-        );
-      })}
-    </div>
+          )}
+        </div>
+      ))}
+    </>
   );
 }
 export default ContactList;

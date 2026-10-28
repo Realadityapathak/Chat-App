@@ -1,38 +1,58 @@
 import { create } from "zustand";
+import { useAuthStore } from "./useAuthStore";
 
-const getInitialTheme = () => {
-  const saved = localStorage.getItem("chatify_theme");
-  if (saved === "light" || saved === "dark") {
-    return saved;
-  }
-  if (typeof window !== "undefined" && window.matchMedia("(prefers-color-scheme: dark)").matches) {
-    return "dark";
-  }
-  return "dark"; // Default to dark for precision console
-};
+export const THEMES = [
+  "dark",
+  "light",
+  "cupcake",
+  "bumblebee",
+  "emerald",
+  "corporate",
+  "synthwave",
+  "retro",
+  "cyberpunk",
+  "valentine",
+  "halloween",
+  "garden",
+  "forest",
+  "aqua",
+  "lofi",
+  "pastel",
+  "fantasy",
+  "wireframe",
+  "black",
+  "luxury",
+  "dracula",
+  "cmyk",
+  "autumn",
+  "business",
+  "acid",
+  "lemonade",
+  "night",
+  "coffee",
+  "winter",
+  "dim",
+  "nord",
+  "sunset",
+];
 
-export const useThemeStore = create((set, get) => ({
-  theme: getInitialTheme(),
+export const useThemeStore = create((set) => ({
+  theme: "dark",
 
-  initTheme: () => {
-    const theme = get().theme;
+  setTheme: (theme, persistToDb = true) => {
     document.documentElement.setAttribute("data-theme", theme);
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
+    set({ theme });
+
+    if (persistToDb) {
+      const authUser = useAuthStore.getState().authUser;
+      if (authUser) {
+        useAuthStore.getState().updateProfile({ theme });
+      }
     }
   },
 
-  toggleTheme: () => {
-    const nextTheme = get().theme === "dark" ? "light" : "dark";
-    localStorage.setItem("chatify_theme", nextTheme);
-    document.documentElement.setAttribute("data-theme", nextTheme);
-    if (nextTheme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-    set({ theme: nextTheme });
+  resetTheme: () => {
+    document.documentElement.setAttribute("data-theme", "dark");
+    set({ theme: "dark" });
   },
 }));

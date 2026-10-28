@@ -6,10 +6,13 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
+      lowercase: true,
+      trim: true,
     },
     fullName: {
       type: String,
       required: true,
+      trim: true,
     },
     password: {
       type: String,
@@ -20,8 +23,16 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    theme: {
+      type: String,
+      default: "dark",
+    },
+    lastSeen: {
+      type: Date,
+      default: null,
+    },
   },
-  { timestamps: true } // createdAt & updatedAt
+  { timestamps: true }
 );
 
 const User = mongoose.model("User", userSchema);

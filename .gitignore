@@ -1,2 +1,25 @@
-node_modules
+# Dependencies
+node_modules/
+
+# Environment Variables & Secrets
 .env
+.env.local
+.env.*.local
+!.env.example
+
+# Build Outputs & Logs
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# AI Assistant & Tool Configuration
+.agent/
+.antigravityignore
+GEMINI.md
+
+# Documentation & Audit Artifacts (Local Only)
+docs/
+tests/

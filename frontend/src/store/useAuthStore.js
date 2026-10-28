@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { useThemeStore } from "./useThemeStore";
 
 const BASE_URL =
   import.meta.env.MODE === "development"
@@ -15,15 +16,20 @@ export const useAuthStore = create((set, get) => ({
   isLoggingIn: false,
   socket: null,
   onlineUsers: [],
+  lastSeenMap: {},
 
   checkAuth: async () => {
     try {
       const res = await axiosInstance.get("/auth/check");
       set({ authUser: res.data });
+      if (res.data?.theme) {
+        useThemeStore.getState().setTheme(res.data.theme, false);
+      }
       get().connectSocket();
     } catch (error) {
       console.log("Error in authCheck:", error);
       set({ authUser: null });
+      useThemeStore.getState().resetTheme();
     } finally {
       set({ isCheckingAuth: false });
     }
@@ -34,6 +40,9 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/signup", data);
       set({ authUser: res.data });
+      if (res.data?.theme) {
+        useThemeStore.getState().setTheme(res.data.theme, false);
+      }
       toast.success("Account created successfully!");
       get().connectSocket();
     } catch (error) {
@@ -48,6 +57,9 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.post("/auth/login", data);
       set({ authUser: res.data });
+      if (res.data?.theme) {
+        useThemeStore.getState().setTheme(res.data.theme, false);
+      }
       toast.success("Logged in successfully");
       get().connectSocket();
     } catch (error) {
@@ -61,6 +73,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       await axiosInstance.post("/auth/logout");
       set({ authUser: null });
+      useThemeStore.getState().resetTheme();
       toast.success("Logged out successfully");
       get().disconnectSocket();
     } catch (error) {
@@ -73,7 +86,11 @@ export const useAuthStore = create((set, get) => ({
     try {
       const res = await axiosInstance.put("/auth/update-profile", data);
       set({ authUser: res.data });
-      toast.success("Profile updated successfully");
+      if (data.theme) {
+        toast.success(`Theme updated to ${data.theme}`);
+      } else {
+        toast.success("Profile updated successfully");
+      }
     } catch (error) {
       console.log("Error in update profile:", error);
       toast.error(error.response?.data?.message || "Failed to update profile");
@@ -97,6 +114,12 @@ export const useAuthStore = create((set, get) => ({
       set({ onlineUsers: userIds });
     });
 
+    newSocket.on("userLastSeen", ({ userId, lastSeen }) => {
+      set((state) => ({
+        lastSeenMap: { ...state.lastSeenMap, [userId]: lastSeen },
+      }));
+    });
+
     set({ socket: newSocket });
   },
 
@@ -107,6 +130,7 @@ export const useAuthStore = create((set, get) => ({
       set({
         socket: null,
         onlineUsers: [],
+        lastSeenMap: {},
       });
     }
   },
